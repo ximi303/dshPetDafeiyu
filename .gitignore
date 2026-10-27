@@ -1,0 +1,60 @@
+# ==========================================================
+# 原则：源码 / 配置 / 小文本入库，大二进制一律不入库。
+# 换台电脑 clone 之后，跑 tools/pipeline 里的脚本就能重新生成全部素材。
+#
+# 警告：gitignore 里只有「行首的 #」才是注释，行尾注释会让规则静默失效！
+#   正确写法：  *.petpack
+#   错误写法：  *.petpack   # 这是什么什么
+# 写成行尾注释时，整行会被当成一个荒谬的文件名，规则失效且不会报任何错。
+# 实测教训：本项目曾因此导致 372 个文件待跟踪（含两个 100MB+ 的 exe）。
+# ==========================================================
+
+# ---- 大二进制素材（不入库，可重新生成）----
+
+# MJPEG 帧包：106 段共 77.5 MB（含 Flash 预置包），脚本可重建
+*.petpack
+
+# 原始素材 106 段（VP9-alpha），共 51.8 MB
+*.webm
+
+# H.264 预览 106 段
+*.mp4
+
+# ffmpeg 下载包
+*.zip
+
+# ---- 外部工具链（体积大，可重新下载）----
+
+# ffmpeg.exe + ffprobe.exe 约 200 MB，可用 download-ffmpeg.mjs 重下
+# 特别注意：ffmpeg.exe 单个就有 100.5 MB，超过 GitHub 100 MB 单文件硬限制
+tools/ffmpeg/
+
+# ---- IDE 与编辑器私有配置 ----
+.codebuddy/
+.idea/
+
+# ---- PlatformIO ----
+.pio/
+.vscode/
+firmware/.pio/
+firmware/.vscode/
+
+# ---- 构建与中间产物 ----
+tools/pipeline/build/
+build/
+*.bin
+*.elf
+*.map
+
+# ---- 日志与缓存 ----
+*.log
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+
+# 注：以下小文本文件**要**入库，别被上面的规则误伤
+#   assets/sdcard/index.json        每段帧数/体积/平均帧大小，固件建索引用
+#   assets/animations.json          动画池与权重，animator 的输入
+#   firmware/data/packs/index.json  Flash 预置包索引
+#   docs/calibration.json           三种分辨率的体积实测

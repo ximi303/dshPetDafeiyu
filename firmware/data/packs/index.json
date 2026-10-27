@@ -1,0 +1,57 @@
+[
+ {
+  "group": "待机",
+  "name": "待机呼吸休闲",
+  "pack": "packs/待机/待机呼吸休闲.petpack",
+  "frames": 121,
+  "fps": 12,
+  "width": 320,
+  "height": 180,
+  "loop": true,
+  "bytes": 733411
+ },
+ {
+  "group": "点击回应",
+  "name": "点击回应-开心跃动",
+  "pack": "packs/点击回应/点击回应-开心跃动.petpack",
+  "frames": 121,
+  "fps": 12,
+  "width": 320,
+  "height": 180,
+  "loop": true,
+  "bytes": 771695
+ },
+ {
+  "group": "点击回应",
+  "name": "点击回应-元气挥手",
+  "pack": "packs/点击回应/点击回应-元气挥手.petpack",
+  "frames": 121,
+  "fps": 12,
+  "width": 320,
+  "height": 180,
+  "loop": true,
+  "bytes": 752877
+ },
+ {
+  "group": "拖拽",
+  "name": "被鼠标拖拽悬空反馈",
+  "pack": "packs/拖拽/被鼠标拖拽悬空反馈.petpack",
+  "frames": 121,
+  "fps": 12,
+  "width": 320,
+  "height": 180,
+  "loop": true,
+  "bytes": 776865
+ },
+ {
+  "group": "事件-工作状态",
+  "name": "工作状态-雀跃庆祝",
+  "pack": "packs/事件-工作状态/工作状态-雀跃庆祝.petpack",
+  "frames": 121,
+  "fps": 12,
+  "width": 320,
+  "height": 180,
+  "loop": true,
+  "bytes": 783346
+ }
+]

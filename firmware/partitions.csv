@@ -1,0 +1,20 @@
+# Name,   Type, SubType, Offset,   Size,     Flags
+# ---------------------------------------------------------------------------
+# 16MB Flash custom partition table for ESP32-S3 N16R8
+#
+# NOTE: keep this file ASCII-only. PlatformIO's _parse_partitions() opens it
+# with the platform default codec (GBK on Chinese Windows) and will crash on
+# any non-ASCII byte. Chinese docs go in docs/ instead.
+#
+# app1 (OTA slot) is dropped on purpose: the default default_16MB.csv gives
+# spiffs only ~3.4MB, which is too small for animation packs. Removing the
+# second app slot yields ~11.93MB for the storage partition.
+#
+# otadata is kept even without OTA - Arduino-ESP32 warns if it is missing.
+# SubType is "spiffs" for ESP-IDF compatibility, but the partition is actually
+# mounted as LittleFS by its **label** ("storage"), so the two do not conflict.
+# ---------------------------------------------------------------------------
+nvs,      data, nvs,     0x9000,   0x5000,
+otadata,  data, ota,     0xe000,   0x2000,
+app0,     app,  ota_0,   0x10000,  0x400000,
+storage,  data, spiffs,  0x410000, 0xBF0000,

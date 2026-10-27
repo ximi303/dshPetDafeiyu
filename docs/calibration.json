@@ -1,0 +1,152 @@
+[
+  {
+    "clip": "待机呼吸休闲",
+    "w": 320,
+    "h": 180,
+    "frames": 36,
+    "avg_frame": 6190.3,
+    "kbps": 72.5,
+    "3s_mb": 0.21,
+    "secs_taken": 0.4
+  },
+  {
+    "clip": "待机呼吸休闲",
+    "w": 240,
+    "h": 135,
+    "frames": 36,
+    "avg_frame": 3939.6,
+    "kbps": 46.2,
+    "3s_mb": 0.14,
+    "secs_taken": 0.2
+  },
+  {
+    "clip": "待机呼吸休闲",
+    "w": 160,
+    "h": 90,
+    "frames": 36,
+    "avg_frame": 2192.7,
+    "kbps": 25.7,
+    "3s_mb": 0.08,
+    "secs_taken": 0.2
+  },
+  {
+    "clip": "原地专心玩魔方",
+    "w": 320,
+    "h": 180,
+    "frames": 36,
+    "avg_frame": 6098.5,
+    "kbps": 71.5,
+    "3s_mb": 0.21,
+    "secs_taken": 0.2
+  },
+  {
+    "clip": "原地专心玩魔方",
+    "w": 240,
+    "h": 135,
+    "frames": 36,
+    "avg_frame": 3872.6,
+    "kbps": 45.4,
+    "3s_mb": 0.13,
+    "secs_taken": 0.2
+  },
+  {
+    "clip": "原地专心玩魔方",
+    "w": 160,
+    "h": 90,
+    "frames": 36,
+    "avg_frame": 2128.8,
+    "kbps": 24.9,
+    "3s_mb": 0.07,
+    "secs_taken": 0.2
+  },
+  {
+    "clip": "吃西瓜",
+    "w": 320,
+    "h": 180,
+    "frames": 36,
+    "avg_frame": 6328.8,
+    "kbps": 74.2,
+    "3s_mb": 0.22,
+    "secs_taken": 0.2
+  },
+  {
+    "clip": "吃西瓜",
+    "w": 240,
+    "h": 135,
+    "frames": 36,
+    "avg_frame": 4087.3,
+    "kbps": 47.9,
+    "3s_mb": 0.14,
+    "secs_taken": 0.2
+  },
+  {
+    "clip": "吃西瓜",
+    "w": 160,
+    "h": 90,
+    "frames": 36,
+    "avg_frame": 2247.9,
+    "kbps": 26.3,
+    "3s_mb": 0.08,
+    "secs_taken": 0.3
+  },
+  {
+    "clip": "写代码",
+    "w": 320,
+    "h": 180,
+    "frames": 36,
+    "avg_frame": 5869.9,
+    "kbps": 68.8,
+    "3s_mb": 0.2,
+    "secs_taken": 0.3
+  },
+  {
+    "clip": "写代码",
+    "w": 240,
+    "h": 135,
+    "frames": 36,
+    "avg_frame": 3719.1,
+    "kbps": 43.6,
+    "3s_mb": 0.13,
+    "secs_taken": 0.2
+  },
+  {
+    "clip": "写代码",
+    "w": 160,
+    "h": 90,
+    "frames": 36,
+    "avg_frame": 2101.5,
+    "kbps": 24.6,
+    "3s_mb": 0.07,
+    "secs_taken": 0.2
+  },
+  {
+    "clip": "工作状态-思考冒泡",
+    "w": 320,
+    "h": 180,
+    "frames": 36,
+    "avg_frame": 6237.5,
+    "kbps": 73.1,
+    "3s_mb": 0.21,
+    "secs_taken": 0.2
+  },
+  {
+    "clip": "工作状态-思考冒泡",
+    "w": 240,
+    "h": 135,
+    "frames": 36,
+    "avg_frame": 3991.7,
+    "kbps": 46.8,
+    "3s_mb": 0.14,
+    "secs_taken": 0.2
+  },
+  {
+    "clip": "工作状态-思考冒泡",
+    "w": 160,
+    "h": 90,
+    "frames": 36,
+    "avg_frame": 2190.0,
+    "kbps": 25.7,
+    "3s_mb": 0.08,
+    "secs_taken": 0.2
+  }
+]
