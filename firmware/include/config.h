@@ -10,6 +10,12 @@
 namespace pet {
 
 // ------------------------------------------------------------
+// 版本号：开机显示在左上角，用来确认「烧进去的确实是这一版」
+// 每次改显示/解码相关代码就 +1，排查时一眼就能对上是哪版
+// ------------------------------------------------------------
+static constexpr const char* kFwVersion = "v0.7-zoom15x";
+
+// ------------------------------------------------------------
 // 存储后端（阶段 1 Flash / 阶段 2 SD）
 // 由 platformio.ini 的 -DSTORAGE_BACKEND=0|1 传入
 // ------------------------------------------------------------
@@ -84,7 +90,10 @@ static constexpr int kPinDc = 10;
 static constexpr int kPinCs = 9;
 static constexpr int kPinRst = 8;
 static constexpr int kPinBl = 13;
-static constexpr uint32_t kSpiWriteHz = 80000000UL;
+// 40MHz：20MHz 已验证稳定；画面放大到 320×240 后像素量 +33%，
+// 刷屏时间从 46ms 涨到 61ms，提到 40MHz 才能守住 12fps 的帧预算（61ms → 30ms）。
+// 若出现花屏/雪花/横纹，退回 20000000UL。
+static constexpr uint32_t kSpiWriteHz = 40000000UL;
 static constexpr uint32_t kSpiReadHz = 16000000UL;
 
 // ------------------------------------------------------------

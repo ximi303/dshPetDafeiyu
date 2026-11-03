@@ -18,7 +18,7 @@
 namespace pet::storage {
 
 struct PackEntry {
-    String path;   // 完整路径，如 /storage/packs/待机/待机呼吸休闲.petpack
+    String path;   // FS 内部路径，如 /packs/待机/待机呼吸休闲.petpack（mountpoint 由 FS 层自动拼接）
     String group;  // 分类目录名：待机 / 点击回应 / 随机-玩耍 / ...
     String name;   // 段名，不含扩展名
 };
@@ -28,7 +28,7 @@ fs::FS* mount();
 bool    mounted();
 
 Backend      activeBackend();
-const char*  packRootPath();  // 挂载点 + /packs，如 /storage/packs
+const char*  packRootPath();  // FS 内部路径，如 /packs（真实访问时 FS 自动加 mountpoint）
 
 // 递归扫描 packRootPath() 下所有 *.petpack，填索引
 size_t                      scanPacks();

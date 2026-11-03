@@ -41,7 +41,14 @@ bool Decoder::decode(const uint8_t* jpeg, int len, uint16_t* dst) {
     }
 
     _jpeg.setUserPointer(dst);               // 回调里靠 pDraw->pUser 找回目标缓冲
-    _jpeg.setPixelType(RGB565_LITTLE_ENDIAN); // 屏是 RGB565，不走 888 再转
+    // 输出小端（内存里的 uint16_t 就是真实 RGB565 值）。
+    //
+    // 不能直接输出大端的理由：缩放要做逐像素通道插值，必须在"值域"里运算；
+    // 大端存储时 uint16_t 读出来是错的值，通道解包会全乱。
+    //
+    // 转大端的工作统一放到 display::scaleFrame() 写回时做（每像素一次 bswap），
+    // 因为 pushImage 是 DMA 直发内存字节，而 ST7789 的 SPI 按大端收。
+    _jpeg.setPixelType(RGB565_LITTLE_ENDIAN);
 
     const int rc = _jpeg.decode(0, 0, 0);
     _jpeg.close();

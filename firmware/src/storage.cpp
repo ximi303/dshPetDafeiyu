@@ -22,13 +22,16 @@ fs::FS* mount() {
             return nullptr;
         }
         s_fs = &LittleFS;
-        s_root = String(kFlashMount) + kPackRoot;
+        // 注意：Arduino-ESP32 的 FS::open() 会自动把 mountpoint（kFlashMount）拼在路径前面，
+        // 所以这里只能写 FS 内部路径 "/packs"。若写成 "/storage/packs"，
+        // 实际访问会变成 "/storage/storage/packs" 而永远打不开。
+        s_root = String(kPackRoot);
     } else {
         if (!SD.begin(kSdCsPin, SPI, kSdSpiHz, kSdMount)) {
             return nullptr;
         }
         s_fs = &SD;
-        s_root = String(kSdMount) + kPackRoot;
+        s_root = String(kPackRoot);  // 同理，SD 的 mountpoint 也由 FS 层自动拼接
     }
 
     return s_fs;
