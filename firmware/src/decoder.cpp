@@ -41,14 +41,14 @@ bool Decoder::decode(const uint8_t* jpeg, int len, uint16_t* dst) {
     }
 
     _jpeg.setUserPointer(dst);               // 回调里靠 pDraw->pUser 找回目标缓冲
-    // 输出小端（内存里的 uint16_t 就是真实 RGB565 值）。
+    // 必须输出大端（高字节在前）。
+    // ESP32 是小端 CPU，pushImage 走 DMA 直接发内存字节、不做任何转换；
+    // 而 ST7789 的 SPI 按大端收数据。用小端的实测后果：
+    // 红显示成蓝、绿显示成红、蓝显示成绿（通道循环错位，看起来又糊又花）。
     //
-    // 不能直接输出大端的理由：缩放要做逐像素通道插值，必须在"值域"里运算；
-    // 大端存储时 uint16_t 读出来是错的值，通道解包会全乱。
-    //
-    // 转大端的工作统一放到 display::scaleFrame() 写回时做（每像素一次 bswap），
-    // 因为 pushImage 是 DMA 直发内存字节，而 ST7789 的 SPI 按大端收。
-    _jpeg.setPixelType(RGB565_LITTLE_ENDIAN);
+    // 注意：素材现在与屏幕 1:1，固件不再做缩放插值，所以这里输出大端不会有
+    // 副作用（早期做缩放时需要小端真值来算通道，那条路径已经删掉了）。
+    _jpeg.setPixelType(RGB565_BIG_ENDIAN);
 
     const int rc = _jpeg.decode(0, 0, 0);
     _jpeg.close();

@@ -21,6 +21,7 @@ namespace pet::player {
 // ============================================================
 
 static bool     s_playing = false;
+static bool     s_forceOnce = false;   // true：忽略包内 loop 标志，播完就停
 static uint16_t s_frameIndex = 0;
 static uint16_t s_frameCount = 0;
 static uint32_t s_nextFrameUs = 0;
@@ -54,7 +55,7 @@ bool begin() {
     return true;
 }
 
-bool play(const char* path) {
+bool play(const char* path, bool once) {
     if (!path) {
         return false;
     }
@@ -72,16 +73,20 @@ bool play(const char* path) {
 
     s_frameIndex = 0;
     s_frameCount = s_pack.frameCount();
+    s_forceOnce  = once;
     s_playing = true;
     s_nextFrameUs = micros();
 
+    // 打印的是"实际生效"的模式，不是包内 loop 标志。
+    // 素材包里 loop=1，但 once 模式只会播一轮；照抄标志会写成"循环"，误导排查。
+    const bool willLoop = s_pack.loop() && !s_forceOnce;
     Serial.printf("[player] 播放 %s  %ux%u  %ufps  %u 帧%s\n",
                   path,
                   static_cast<unsigned>(s_pack.width()),
                   static_cast<unsigned>(s_pack.height()),
                   static_cast<unsigned>(s_pack.fps()),
                   static_cast<unsigned>(s_frameCount),
-                  s_pack.loop() ? "（循环）" : "");
+                  willLoop ? "（循环）" : "（单次）");
     return true;
 }
 
@@ -134,11 +139,11 @@ void tick() {
     // 5) 推进帧号与时间轴
     s_frameIndex++;
     if (s_frameIndex >= s_frameCount) {
-        if (s_pack.loop()) {
+        if (s_pack.loop() && !s_forceOnce) {
             s_frameIndex = 0;
         } else {
             s_frameIndex = static_cast<uint16_t>(s_frameCount - 1);
-            s_playing = false;  // 非循环段播完就停
+            s_playing = false;  // once 模式（或非循环段）播完就停，等 animator 接下一段
         }
     }
 

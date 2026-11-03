@@ -86,81 +86,20 @@ static volatile uint32_t  s_frames = 0;
 static bool               s_ready = false;
 
 // ------------------------------------------------------------
-// 缩放：素材 320×180 → 屏幕 320×240
+// 为什么固件端不做缩放
 //
-// ===== 倍数标定记录（2026-11-03 实机逐档验证，勿随意改）=====
+// 早期走过"运行时放大"这条路：素材 320×180 → 放大 1.33/1.5/2 倍 → 裁到 320×240。
+// 实机结论是这条路到头了：320×180 里人物只占约 105px 高，拉到 240 就是 2.3 倍
+// 上采样，插值只能抹平锯齿、造不出细节，越拉越糊，还额外吃掉每帧 15ms。
 //
-//   倍数   配置    实测效果
-//   ────────────────────────────────────────────────────────
-//   1.33   4/3     高度刚好填满，但人物明显偏小
-//   1.40   7/5     略大于 4/3
-//   1.50 ★ 3/2     人物完整、大小合适  ← 当前采用
-//   1.60   8/5     更满，边缘开始贴边
-//   2.00   2/1     左右切掉头发、底部切脚，已否决
+// 现在的做法是把放大搬到流水线：源视频 640×360 居中裁 426×320，再 lanczos
+// 缩放到 320×240，全程用源视频的真实像素。素材已与屏幕 1:1，这里原样直推即可。
 //
-//   上限是 1.5 的原因：素材 320×180 里人物几乎顶天立地，
-//   再放大必然切掉头顶呆毛或裙摆 —— 这是素材构图决定的天花板，
-//   不是固件参数问题。想再大只能在 pipeline 端把镜头拉近/裁掉背景留白。
-//
-// 当前 1.5 倍的实际采样范围：
-//   放大后 480×270，居中裁掉 x 两侧各 80、y 两侧各 15，
-//   即显示源图的 x∈[53,264]、y∈[9,168]。
-//
+// 历史倍数与裁切尺寸的等价关系（改 pipeline 的 CROP_* 时参考）：
+//   1.33 倍 ↔ 裁 480×360   人物偏小
+//   1.50 倍 ↔ 裁 426×320   人物完整、大小合适  ← 当前素材就是这个裁法
+//   2.00 倍 ↔ 裁 320×240   切头切脚
 // ------------------------------------------------------------
-// 【备选：原比例 4/3】人物偏小但绝不裁切，需要时整段替换下面两行
-//     static constexpr int kZoomNum = 4;
-//     static constexpr int kZoomDen = 3;
-// ------------------------------------------------------------
-static uint16_t* s_scale = nullptr;
-static constexpr uint32_t kScaleBytes =
-    static_cast<uint32_t>(kScreenW) * kScreenH * sizeof(uint16_t);
-
-static constexpr int kZoomNum = 3;                                   // 放大倍数分子
-static constexpr int kZoomDen = 2;                                   // 放大倍数分母（3/2 = 1.5 倍）
-static constexpr int kScaledW = kFrameW * kZoomNum / kZoomDen;       // 放大后宽
-static constexpr int kScaledH = kFrameH * kZoomNum / kZoomDen;       // 放大后高
-static constexpr int kCropX   = (kScaledW > kScreenW) ? (kScaledW - kScreenW) / 2 : 0;
-static constexpr int kCropY   = (kScaledH > kScreenH) ? (kScaledH - kScreenH) / 2 : 0;
-static constexpr int kStep    = kZoomDen * 256 / kZoomNum;           // 8 位定点步长
-
-// RGB565 分通道线性插值，权重按 8 位定点（wa + wb = 256）
-static inline uint16_t lerp565(uint16_t a, uint16_t b, int wa, int wb) {
-    const int ar = (a >> 11) & 0x1F, ag = (a >> 5) & 0x3F, ab = a & 0x1F;
-    const int br = (b >> 11) & 0x1F, bg = (b >> 5) & 0x3F, bb = b & 0x1F;
-    const int r  = (ar * wa + br * wb) >> 8;
-    const int g  = (ag * wa + bg * wb) >> 8;
-    const int bl = (ab * wa + bb * wb) >> 8;
-    return static_cast<uint16_t>((r << 11) | (g << 5) | bl);
-}
-
-static inline uint16_t bswap16(uint16_t v) {
-    return static_cast<uint16_t>((v >> 8) | (v << 8));
-}
-
-// 横向线性插值 + 纵向最近邻。
-//
-// 纵向不做插值：人眼对纵向锯齿远不如横向敏感，而完整双线性要 3 次
-// lerp565/像素，在 PSRAM 上约 35ms，会把帧率打到 10fps。
-// 2 倍放大时纵向每 2 行取同一源行，实测几乎看不出来。
-static void scaleFrame(const uint16_t* src, uint16_t* dst) {
-    for (int dy = 0; dy < kScreenH; ++dy) {
-        int sy = ((dy + kCropY) * kStep) >> 8;
-        if (sy >= kFrameH) sy = kFrameH - 1;
-        const uint16_t* srow = src + sy * kFrameW;
-        uint16_t*       drow = dst + dy * kScreenW;
-
-        for (int dx = 0; dx < kScreenW; ++dx) {
-            const int sx8  = (dx + kCropX) * kStep;
-            int       sx   = sx8 >> 8;
-            const int frac = sx8 & 0xFF;
-            if (sx >= kFrameW - 1) sx = kFrameW - 2;
-
-            const uint16_t out = lerp565(srow[sx], srow[sx + 1], 256 - frac, frac);
-            // 解码输出的是小端真值，pushImage 需要大端字节流，在这里一次性转换
-            drow[dx] = bswap16(out);
-        }
-    }
-}
 
 static void displayTask(void* /*arg*/) {
     while (true) {
@@ -186,18 +125,14 @@ static void displayTask(void* /*arg*/) {
         //
         // fillScreen 之所以正常，是因为它走 CPU 直接写 LCD 命令通道，
         // 根本不经过 PSRAM 这块缓冲。
-        // 放大到全屏：等比 4/3，左右各裁 53px（见 scaleFrame 顶部说明）
-        scaleFrame(s_buf[idx], s_scale);
-
 #if defined(PET_HAVE_ROM_CACHE)
-        Cache_WriteBack_Addr(reinterpret_cast<uint32_t>(s_scale), kScaleBytes);
+        Cache_WriteBack_Addr(reinterpret_cast<uint32_t>(s_buf[idx]), kFrameBytes);
 #endif
 
         // 整帧 DMA 推出去，别用逐像素画点。
-        // 解码器已输出大端字节序（RGB565_BIG_ENDIAN）；scaleFrame 只是原样搬
-        // uint16_t，字节序保持不变，所以这里仍然直发。
+        // 素材与屏幕 1:1（320×240），无需缩放；解码器已输出大端字节序，直发即可。
         s_lcd.startWrite();
-        s_lcd.pushImage(0, 0, kScreenW, kScreenH, s_scale);
+        s_lcd.pushImage(kFrameX, kFrameY, kFrameW, kFrameH, s_buf[idx]);
         s_lcd.endWrite();
 
         s_frames++;
@@ -232,15 +167,6 @@ bool begin() {
         }
         std::memset(s_buf[i], 0, kFrameBytes);
     }
-
-    // 缩放缓冲：320×240×2 = 153KB，同样放 PSRAM
-    s_scale = static_cast<uint16_t*>(heap_caps_malloc(kScaleBytes, MALLOC_CAP_SPIRAM));
-    if (!s_scale) {
-        Serial.printf("[display] 缩放缓冲分配失败（需要 %lu 字节）\n",
-                      (unsigned long)kScaleBytes);
-        return false;
-    }
-    std::memset(s_scale, 0, kScaleBytes);
 
     // ==================================================================
     // 调试区：全部用 #if 0 关闭。需要时把对应的 0 改成 1 重新编译即可，

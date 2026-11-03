@@ -1,57 +1,90 @@
 [
  {
-  "group": "待机",
-  "name": "待机呼吸休闲",
-  "pack": "packs/待机/待机呼吸休闲.petpack",
+  "group": "随机-时节",
+  "name": "舞狮头",
+  "pack": "packs/随机-时节/舞狮头.petpack",
   "frames": 121,
   "fps": 12,
   "width": 320,
-  "height": 180,
+  "height": 240,
   "loop": true,
-  "bytes": 733411
+  "bytes": 1445510
  },
  {
-  "group": "点击回应",
-  "name": "点击回应-开心跃动",
-  "pack": "packs/点击回应/点击回应-开心跃动.petpack",
+  "group": "随机-玩耍",
+  "name": "三球抛接",
+  "pack": "packs/随机-玩耍/三球抛接.petpack",
   "frames": 121,
   "fps": 12,
   "width": 320,
-  "height": 180,
+  "height": 240,
   "loop": true,
-  "bytes": 771695
+  "bytes": 1371133
  },
  {
-  "group": "点击回应",
-  "name": "点击回应-元气挥手",
-  "pack": "packs/点击回应/点击回应-元气挥手.petpack",
+  "group": "随机-吃什么",
+  "name": "吃白饭",
+  "pack": "packs/随机-吃什么/吃白饭.petpack",
   "frames": 121,
   "fps": 12,
   "width": 320,
-  "height": 180,
+  "height": 240,
   "loop": true,
-  "bytes": 752877
+  "bytes": 1331251
  },
  {
-  "group": "拖拽",
-  "name": "被鼠标拖拽悬空反馈",
-  "pack": "packs/拖拽/被鼠标拖拽悬空反馈.petpack",
+  "group": "随机-小动作",
+  "name": "写代码",
+  "pack": "packs/随机-小动作/写代码.petpack",
   "frames": 121,
   "fps": 12,
   "width": 320,
-  "height": 180,
+  "height": 240,
   "loop": true,
-  "bytes": 776865
+  "bytes": 1269812
  },
  {
-  "group": "事件-工作状态",
-  "name": "工作状态-雀跃庆祝",
-  "pack": "packs/事件-工作状态/工作状态-雀跃庆祝.petpack",
+  "group": "随机-玩耍",
+  "name": "轻快摇摆舞",
+  "pack": "packs/随机-玩耍/轻快摇摆舞.petpack",
   "frames": 121,
   "fps": 12,
   "width": 320,
-  "height": 180,
+  "height": 240,
   "loop": true,
-  "bytes": 783346
+  "bytes": 1303246
+ },
+ {
+  "group": "随机-吃什么",
+  "name": "吃Token",
+  "pack": "packs/随机-吃什么/吃Token.petpack",
+  "frames": 121,
+  "fps": 12,
+  "width": 320,
+  "height": 240,
+  "loop": true,
+  "bytes": 1478432
+ },
+ {
+  "group": "随机-玩耍",
+  "name": "吹气球",
+  "pack": "packs/随机-玩耍/吹气球.petpack",
+  "frames": 121,
+  "fps": 12,
+  "width": 320,
+  "height": 240,
+  "loop": true,
+  "bytes": 1421906
+ },
+ {
+  "group": "随机-玩耍",
+  "name": "蝴蝶蜜蜂环绕头顶开花",
+  "pack": "packs/随机-玩耍/蝴蝶蜜蜂环绕头顶开花.petpack",
+  "frames": 121,
+  "fps": 12,
+  "width": 320,
+  "height": 240,
+  "loop": true,
+  "bytes": 1583433
  }
 ]

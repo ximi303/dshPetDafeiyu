@@ -63,9 +63,9 @@ void setup() {
                   static_cast<unsigned>(kFrameBytes / 1024),
                   kBufferCount);
 
-    // ---- 3) 起播第一段（阶段 1 打通后这里会真的动起来）----
+    // ---- 3) 起播：animator 已洗好牌并选出第一段，播完由它接下一段 ----
     if (n > 0) {
-        player::play(storage::packs().front().path.c_str());
+        player::play(animator::currentPack(), /*once=*/true);
     }
 }
 

@@ -16,8 +16,11 @@ namespace pet::player {
 
 bool begin();
 
-// 开始播一段（路径来自 storage::packs()）；播完按 flags 决定是否循环
-bool play(const char* path);
+// 开始播一段（路径来自 storage::packs()）。
+//   once = false：按包内 loop 标志决定是否循环（默认）
+//   once = true ：忽略包内标志，播完一轮就停，playing() 变 false，
+//                 由 animator 接着播下一段 —— 多段轮播用的就是这个模式
+bool play(const char* path, bool once = false);
 void stop();
 
 // 在 loop() 里调用：到点了就推进一帧，落后太多就跳帧

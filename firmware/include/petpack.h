@@ -25,8 +25,8 @@ namespace pet {
 struct PackHeader {
     char     magic[4];     // "PETP"
     uint16_t version;      // 1
-    uint16_t width;        // 320
-    uint16_t height;       // 180
+    uint16_t width;        // 320，打开时与 kFrameW 比对，不一致直接拒绝
+    uint16_t height;       // 240，打开时与 kFrameH 比对，不一致直接拒绝
     uint16_t fps;          // 12
     uint16_t frameCount;   // 帧数
     uint32_t flags;        // bit0 = 循环播放

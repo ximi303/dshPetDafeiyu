@@ -13,7 +13,7 @@ namespace pet {
 // 版本号：开机显示在左上角，用来确认「烧进去的确实是这一版」
 // 每次改显示/解码相关代码就 +1，排查时一眼就能对上是哪版
 // ------------------------------------------------------------
-static constexpr const char* kFwVersion = "v0.7-zoom15x";
+static constexpr const char* kFwVersion = "v1.1-fallback";
 
 // ------------------------------------------------------------
 // 存储后端（阶段 1 Flash / 阶段 2 SD）
@@ -33,10 +33,13 @@ static constexpr uint16_t kScreenW = 320;
 static constexpr uint16_t kScreenH = 240;
 
 // ---- 内容区：.petpack 的实际尺寸（16:9，上下各留 30px）----
+// 帧尺寸与屏幕 1:1 —— 放大在流水线侧完成（裁源画面 426×320 再缩放到 320×240），
+// 固件只负责原样推送，不做任何缩放。运行时放大是把已有像素复制/插值，只会更糊。
+// 改这里必须同步改 tools/pipeline/pipeline.py 的 WIDTH/HEIGHT/CROP_*。
 static constexpr uint16_t kFrameW = 320;
-static constexpr uint16_t kFrameH = 180;
+static constexpr uint16_t kFrameH = 240;
 static constexpr uint16_t kFrameX = 0;
-static constexpr uint16_t kFrameY = 30;  // (240 - 180) / 2
+static constexpr uint16_t kFrameY = 0;
 
 // ------------------------------------------------------------
 // 播放
@@ -63,7 +66,23 @@ static constexpr const char* kFlashMount = "/storage";
 static constexpr uint8_t kFlashMaxOpenFiles = 10;
 
 // SD 卡（阶段 2）
+//
+// 必须走独立的 SPI3(HSPI)，不能和屏共用 SPI2：
+// 固件是双线程并发（core1 读帧 + core0 DMA 刷屏），若两者在同一条 SPI 上，
+// DMA 传输期间 SD 又发起读，会抢总线，表现为随机花屏 / 读卡超时。
+//
+// 引脚选择说明（避开以下禁区）：
+//   19/20      USB D-/D+
+//   26~37      Octal PSRAM 占用
+//   0/3/45/46  Strapping，上电电平影响启动
+//   43/44      UART0 默认 TX/RX
+//
+// 注意：ESP32 老款 HSPI 的默认引脚是 12/13/14/15，其中 13 现在是背光，
+// 所以必须显式 begin(sck, miso, mosi, cs)，不能依赖默认值。
 static constexpr int kSdCsPin = 5;
+static constexpr int kSdSckPin = 14;
+static constexpr int kSdMosiPin = 15;
+static constexpr int kSdMisoPin = 16;
 static constexpr uint32_t kSdSpiHz = 20000000UL;  // 20MHz，顺序读约 2MB/s
 static constexpr const char* kSdMount = "/sdcard";
 

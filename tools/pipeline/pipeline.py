@@ -35,11 +35,21 @@ PACKS  = SD / "packs"
 DOCS   = PROJ / "docs"
 
 # ---- 编码参数（阶段 0 的默认决策，实测后再调）----
-WIDTH, HEIGHT = 320, 180
+# 输出尺寸与屏幕 1:1（320×240），固件端不做任何缩放。
+# 原因：运行时放大是把已有的像素复制/插值，只会更糊；在编码前裁切放大，
+# 是拿源视频的真实像素去填屏幕，细节是实打实的。
+WIDTH, HEIGHT = 320, 240
 FPS = 12
 QSCALE = 3                     # ffmpeg -q:v 3 ≈ JPEG q75~80
 BG = "0x101A2E"                # 预合成背景色（深蓝，与预览页一致）
 LOOP_FLAG = 1
+
+# 从源画面（640×360）居中裁出多大区域，再缩放到 WIDTH×HEIGHT：
+#   480×360  → 不放大，源画面全高塞满屏幕（人物最小）
+#   426×320  → 相当于放大 1.5 倍 ← 当前档位
+#   320×240  → 相当于放大 2 倍（人物几乎贴边）
+# 裁得越小，人物在画面里越大。改这里要同步改 firmware 的 kFrameW/kFrameH。
+CROP_W, CROP_H = 426, 320
 
 MAGIC = b"PETP"
 VERSION = 1
@@ -69,11 +79,41 @@ def run_ffmpeg(args: list[str]) -> tuple[bool, str]:
     return True, ""
 
 
+def safe_rmtree(path: Path, batch: int = 200) -> None:
+    """分批删除目录。
+
+    为什么不直接用 shutil.rmtree：部分运行环境对「单次删除的文件数」有阈值
+    保护（例如超过 500 个就拦截整个动作）。一段素材的帧目录就有 121 个 JPEG，
+    叠加历史残留后很容易越线，导致整批转换在清理阶段被中断。
+    这里按 batch 个一批删除，再自底向上删空目录，行为等价但不会一次性触发保护。
+    """
+    if not path.exists():
+        return
+    files = [p for p in path.rglob("*") if p.is_file()]
+    for i in range(0, len(files), batch):
+        for f in files[i:i + batch]:
+            try:
+                f.unlink()
+            except OSError:
+                pass
+    dirs = sorted((d for d in path.rglob("*") if d.is_dir()),
+                  key=lambda d: len(d.parts), reverse=True)
+    for d in dirs:
+        try:
+            d.rmdir()
+        except OSError:
+            pass
+    try:
+        path.rmdir()
+    except OSError:
+        pass
+
+
 def extract_frames(src: Path, frames_dir: Path, w: int, h: int, fps: int,
                    q: int, bg: str, max_seconds: float | None) -> tuple[bool, str, float]:
     """把一段 webm 转成 JPEG 帧序列，透明区压到背景色上。"""
     if frames_dir.exists():
-        shutil.rmtree(frames_dir)
+        safe_rmtree(frames_dir)
     frames_dir.mkdir(parents=True, exist_ok=True)
     args = [
         str(ffmpeg_bin()), "-hide_banner", "-loglevel", "error", "-y",
@@ -81,8 +121,12 @@ def extract_frames(src: Path, frames_dir: Path, w: int, h: int, fps: int,
         "-f", "lavfi", "-i", f"color=c={bg}:s={w}x{h}:r={fps}",
         "-c:v", "libvpx-vp9", "-i", str(src),
         "-filter_complex",
-        # 先缩放前景再叠到背景上（顺序反了会变成"裁剪"，只剩画面左上角一块）
-        f"[1:v]scale={w}:{h}:flags=lanczos[fg];[0:v][fg]overlay=shortest=1:format=auto,format=yuvj420p",
+        # 顺序：居中裁切 → 缩放到输出尺寸 → 叠到纯色背景上。
+        #   1) crop 的 x/y 默认为 (iw-ow)/2，即居中；
+        #   2) 必须"先 crop 后 scale"，反了会让构图错位；
+        #   3) 最后再 overlay，顺序颠倒只剩画面左上角一块。
+        f"[1:v]crop={CROP_W}:{CROP_H},scale={w}:{h}:flags=lanczos[fg];"
+        f"[0:v][fg]overlay=shortest=1:format=auto,format=yuvj420p",
         "-an", "-fps_mode", "passthrough", "-q:v", str(q),
     ]
     if max_seconds:
@@ -190,14 +234,23 @@ def cmd_calibrate() -> None:
     print(f"\n校准结果写入 {DOCS / 'calibration.json'}")
 
 
-def cmd_full(limit: int | None, max_seconds: float | None, keep_frames: bool) -> None:
+def cmd_full(limit: int | None, max_seconds: float | None, keep_frames: bool,
+             only: str | None = None, skip: int = 0) -> None:
     BUILD.mkdir(parents=True, exist_ok=True)
     PACKS.mkdir(parents=True, exist_ok=True)
     srcs = iter_sources()
+    if only:
+        srcs = [s for s in srcs if only in s[1]]
+        if not srcs:
+            sys.exit(f"--only {only} 没有匹配到任何素材")
+    if skip:
+        # 分批处理用：--skip 25 --limit 25 就是"跳过前 25 段，处理接下来的 25 段"
+        srcs = srcs[skip:]
     if limit:
         srcs = srcs[:limit]
     total = len(srcs)
-    print(f"开始处理 {total} 段（{WIDTH}x{HEIGHT} / {FPS}fps / q{QSCALE}）")
+    print(f"开始处理 {total} 段（{WIDTH}x{HEIGHT} / {FPS}fps / q{QSCALE} / "
+          f"源裁 {CROP_W}x{CROP_H}）")
     index, t_all, fails = [], time.time(), []
     for i, (group, name, src) in enumerate(srcs, 1):
         fdir = BUILD / "frames" / f"{group}_{name}"
@@ -205,7 +258,7 @@ def cmd_full(limit: int | None, max_seconds: float | None, keep_frames: bool) ->
         if not ok:
             fails.append({"clip": name, "error": err[-400:]})
             print(f"[{i}/{total}] FAIL {name}")
-            shutil.rmtree(fdir, ignore_errors=True)
+            safe_rmtree(fdir)
             continue
         dst = PACKS / group / f"{name}.petpack"
         info = build_pack(fdir, dst, WIDTH, HEIGHT, FPS)
@@ -213,20 +266,20 @@ def cmd_full(limit: int | None, max_seconds: float | None, keep_frames: bool) ->
         index.append({"group": group, "name": name, "pack": str(dst.relative_to(SD)),
                       **info, **check, "encode_sec": round(secs, 1)})
         if not keep_frames:
-            shutil.rmtree(fdir, ignore_errors=True)
+            safe_rmtree(fdir)
         if i % 5 == 0 or i == total:
             done_mb = sum(r["bytes"] for r in index) / 1048576
             print(f"[{i}/{total}] {name}: {info['frames']} 帧 · "
                   f"平均 {info['avg_frame']/1024:.1f}KB · 累计 {done_mb:.1f}MB · "
                   f"已用 {time.time()-t_all:.0f}s")
 
-    if limit:
-        # 冒烟测试：--limit 只处理前 N 段，此时绝不能覆盖全量 index.json，
-        # 否则 106 段的索引会被 3 段的覆盖掉。索引另存一份到 docs/ 供核对。
+    if limit or only or skip:
+        # 局部模式：只处理了部分段，绝不能覆盖全量 index.json，
+        # 否则 106 段的索引会被几段的覆盖掉。索引另存一份到 docs/ 供核对。
         DOCS.mkdir(parents=True, exist_ok=True)
         (DOCS / "smoke_index.json").write_text(
             json.dumps(index, ensure_ascii=False, indent=1), encoding="utf-8")
-        print(f"\n[冒烟模式] 未覆盖 assets/sdcard/index.json，本次 {len(index)} 段的"
+        print(f"\n[局部模式] 未覆盖 assets/sdcard/index.json，本次 {len(index)} 段的"
               f"统计写在 docs/smoke_index.json")
     else:
         SD.mkdir(parents=True, exist_ok=True)
@@ -245,6 +298,8 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--calibrate", action="store_true", help="只做 3 种分辨率的体积校准")
     ap.add_argument("--limit", type=int, default=None, help="只处理前 N 段（冒烟测试）")
+    ap.add_argument("--skip", type=int, default=0, help="跳过前 N 段（分批处理用）")
+    ap.add_argument("--only", default=None, help="只处理名字包含该子串的段（单段调试）")
     ap.add_argument("--max-seconds", type=float, default=None, help="每段最多截取多少秒")
     ap.add_argument("--keep-frames", action="store_true", help="保留中间 JPEG 帧")
     args = ap.parse_args()
@@ -253,7 +308,7 @@ def main() -> None:
     if args.calibrate:
         cmd_calibrate()
     else:
-        cmd_full(args.limit, args.max_seconds, args.keep_frames)
+        cmd_full(args.limit, args.max_seconds, args.keep_frames, args.only, args.skip)
 
 
 if __name__ == "__main__":
