@@ -29,6 +29,24 @@
 # 特别注意：ffmpeg.exe 单个就有 100.5 MB，超过 GitHub 100 MB 单文件硬限制
 tools/ffmpeg/
 
+# ---- 多角色预览素材（由 tools/build_character_preview.py 重建）----
+
+# 每个角色 18 张首帧海报，约 5 MB，脚本可重新生成
+assets/*/posters/
+
+# ---- 第三方参考素材（体积大，非本项目产出，随时可删）----
+
+# AI 酱（AI Buddy）安装目录：1.66 GB / 4795 文件（3869 webp + 198 webm）
+# 用途仅为参考桌宠动画素材，不属于本项目源码，绝不入库
+references/AIBuddy/
+
+# AI 酱上游源码快照：59 MB / 1531 文件（369 png + 65 webp）
+# 需要时从 GitHub 重新拉取，不必占用仓库空间
+references/AI-Buddy-main/
+
+# 安装器本体：约 50 MB，官网可重新下载
+references/*.exe
+
 # ---- IDE 与编辑器私有配置 ----
 .codebuddy/
 .idea/
@@ -45,6 +63,10 @@ build/
 *.bin
 *.elf
 *.map
+
+# ---- 版本发布产物（用户要求全部入库）----
+# 上面 *.bin 全局忽略会挡住 releases 里的烧写文件，这里负向放行
+!releases/**/*.bin
 
 # ---- 日志与缓存 ----
 *.log

@@ -15,6 +15,7 @@
 #include "petpack.h"
 #include "player.h"
 #include "storage.h"
+#include "version.h"  // tools/release.py 生成，开机日志自报固件版本
 
 using namespace pet;  // Backend / kFrameW 等常量在 pet 下；各模块在 pet::xxx 下
 
@@ -24,7 +25,7 @@ static uint32_t s_lastStatMs = 0;
 void setup() {
     Serial.begin(115200);
     delay(500);
-    Serial.println("\n[pet] boot");
+    Serial.printf("\n[pet] boot %s (%s)\n", FW_VERSION, FW_RELEASE_DATE);
 
     // ---- 1) 存储：阶段 1 是 Flash(LittleFS)，阶段 2 改成 SD 只需改 -DSTORAGE_BACKEND ----
     if (!storage::mount()) {
