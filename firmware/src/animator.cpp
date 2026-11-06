@@ -2,6 +2,8 @@
 
 #include <Arduino.h>
 #include <esp_random.h>
+#include <utility>
+#include <vector>
 
 #include "player.h"
 #include "storage.h"
@@ -26,25 +28,21 @@ namespace pet::animator {
 static Trigger s_trigger = Trigger::Idle;
 static const char* s_current = "";
 
-static uint16_t s_order[32];      // 段索引的播放顺序（8 段够用，留余量）
-static uint8_t  s_orderLen = 0;
-static uint8_t  s_pos = 0;
+static std::vector<uint16_t> s_order;  // 段索引的播放顺序，按扫到的段数动态分配（SD 卡 106 段也全覆盖）
+static size_t  s_pos = 0;
 static uint32_t s_lastTryMs = 0;
 
 static void reshuffle() {
     const size_t n = storage::packs().size();
-    constexpr uint8_t kCap = sizeof(s_order) / sizeof(s_order[0]);
-    s_orderLen = static_cast<uint8_t>(n < kCap ? n : kCap);
+    s_order.resize(n);
 
-    for (uint8_t i = 0; i < s_orderLen; ++i) {
-        s_order[i] = i;
+    for (size_t i = 0; i < n; ++i) {
+        s_order[i] = static_cast<uint16_t>(i);
     }
     // Fisher-Yates：从末尾往前，与 [0, i] 中随机一个交换
-    for (uint8_t i = s_orderLen; i > 1; --i) {
-        const uint8_t j = static_cast<uint8_t>(esp_random() % i);
-        const uint16_t t = s_order[i - 1];
-        s_order[i - 1] = s_order[j];
-        s_order[j] = t;
+    for (size_t i = n; i > 1; --i) {
+        const size_t j = esp_random() % i;
+        std::swap(s_order[i - 1], s_order[j]);
     }
     s_pos = 0;
 }
@@ -54,10 +52,10 @@ static const char* pickNext() {
     if (packs.empty()) {
         return nullptr;
     }
-    if (s_pos >= s_orderLen) {
+    if (s_pos >= s_order.size()) {
         reshuffle();
     }
-    if (s_pos >= s_orderLen) {
+    if (s_pos >= s_order.size()) {
         return nullptr;
     }
     const uint16_t idx = s_order[s_pos++];
@@ -65,10 +63,10 @@ static const char* pickNext() {
 }
 
 bool begin() {
-    s_trigger  = Trigger::Idle;
-    s_orderLen = 0;
-    s_pos      = 0;
-    s_current  = pickNext();   // 先选好第一段，main 里起播
+    s_trigger = Trigger::Idle;
+    s_order.clear();
+    s_pos     = 0;
+    s_current = pickNext();   // 先选好第一段，main 里起播
     return true;
 }
 
