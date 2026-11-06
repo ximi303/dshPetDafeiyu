@@ -111,15 +111,17 @@ static bool mountSd() {
     // 必须先显式 begin 指定引脚，再交给 SD.begin。
     // 参数顺序是 (sck, miso, mosi, ss)，别按 SPI 平时的 mosi/miso 习惯写反。
     s_sdSpi.begin(kSdSckPin, kSdMisoPin, kSdMosiPin, kSdCsPin);
-    // 返回 0 表示失败；成功返回卡类型（1=MMC 2=SDSC 3=SDHC/SDXC）
-    const uint8_t cardType = SD.begin(kSdCsPin, s_sdSpi, kSdSpiHz, kSdMount);
-    if (!cardType) {
+    // SD.begin 返回的是 bool（成败），不是卡类型 —— 之前误当类型用，
+    // 成功时恒为 1，日志于是永远打印 "MMC"。真实类型要从 cardType() 取。
+    if (!SD.begin(kSdCsPin, s_sdSpi, kSdSpiHz, kSdMount)) {
         Serial.println("[storage] SD 挂载失败：查 VCC 是否接 5V、卡是否 FAT32");
         s_sdSpi.end();       // 释放 SPI 外设占用的引脚，下面用裸 GPIO 探测
         probeSdPins();
         return false;
     }
-    static const char* kTypeName[] = {"", "MMC", "SDSC", "SDHC/SDXC"};
+    // 1=MMC 2=SDSC 3=SDHC/SDXC
+    const uint8_t cardType = SD.cardType();
+    static const char* kTypeName[] = {"无卡", "MMC", "SDSC", "SDHC/SDXC"};
     Serial.printf("[storage] SD 已挂载：%s  容量 %llu MB\n",
                   kTypeName[cardType > 3 ? 0 : cardType],
                   static_cast<unsigned long long>(SD.cardSize()) / (1024ULL * 1024ULL));
