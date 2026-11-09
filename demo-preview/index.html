@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>肥鱼养成机 · 交互原型 Demo</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="desk">
+
+  <!-- 标题 -->
+  <header class="page-header">
+    <h1>🐟 肥鱼养成机 <span class="header-sub">交互原型 Demo · 固件计划一比一预览</span></h1>
+  </header>
+
+  <div class="layout">
+
+    <!-- ══════════ 宠物机主体 ══════════ -->
+    <div class="device">
+
+      <!-- 屏幕总成 -->
+      <div class="screen-frame">
+        <div class="screen" id="screen">
+
+          <!-- 动画层 -->
+          <video id="pet-video" class="pet-video" muted loop playsinline preload="auto"
+                 src="../assets/source-webm/待机/待机呼吸休闲.webm"></video>
+
+          <!-- 状态栏 overlay（顶部 28 逻辑像素 = 56 显示像素） -->
+          <div class="statusbar" id="statusbar">
+            <div class="stat stat-rice">
+              <svg class="stat-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <!-- 饭碗 -->
+                <path d="M3 11h18a9 9 0 0 1-18 0z" fill="#F5EDE0"/>
+                <ellipse cx="12" cy="11" rx="9" ry="2.2" fill="#FFFFFF"/>
+                <path d="M8 8.5q2-2.5 4 0t4 0" stroke="#B8C4D8" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+                <rect x="5" y="18.5" width="14" height="1.8" rx="0.9" fill="#C9B79C"/>
+              </svg>
+              <div class="stars" id="stars-rice"></div>
+            </div>
+            <div class="stat stat-mood">
+              <div class="stars" id="stars-mood"></div>
+              <svg class="stat-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <!-- 小鱼干 -->
+                <path d="M4 12c3-4 8-6 13-4.5L21 6v12l-4-1.5C12 18 7 16 4 12z" fill="#EFC9A0"/>
+                <circle cx="7.5" cy="11.2" r="1" fill="#3A2E20"/>
+                <path d="M17 7.5 21 6v12l-4-1.5" fill="#D8A878"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- 飘字层 -->
+          <div class="toast-layer" id="toast-layer"></div>
+
+          <!-- 长按页面层（状态详情 / 累计数据 / 设置菜单） -->
+          <div class="menu-layer" id="menu-layer" hidden>
+            <div class="menu-page" id="menu-page"></div>
+          </div>
+
+          <!-- 休眠压暗遮罩 -->
+          <div class="sleep-mask" id="sleep-mask" hidden>
+            <div class="sleep-hint">💤 已休眠 · 按任意键唤醒</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 机身品牌 -->
+      <div class="device-brand">XIMI&nbsp;PET&nbsp;·&nbsp;FEIYU-01</div>
+
+      <!-- 2×2 物理按键 -->
+      <div class="keypad">
+        <button class="key key-feed" data-btn="feed">
+          <span class="key-name">投喂白饭</span>
+          <span class="key-sub">短按 干饭 · 长按 状态</span>
+        </button>
+        <button class="key key-play" data-btn="play">
+          <span class="key-name">摸鱼玩耍</span>
+          <span class="key-sub">短按 玩耍 · 长按 皮肤</span>
+        </button>
+        <button class="key key-work" data-btn="work">
+          <span class="key-name">打工跑代码</span>
+          <span class="key-sub">短按 打工 · 长按 数据</span>
+        </button>
+        <button class="key key-pet" data-btn="pet">
+          <span class="key-name">撸鱼贴贴</span>
+          <span class="key-sub">短按 贴贴 · 长按 设置</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- ══════════ 右侧面板 ══════════ -->
+    <aside class="side-panel">
+
+      <section class="panel-card">
+        <h2 class="panel-title">模拟倍速</h2>
+        <p class="panel-hint">作用于自然衰减与休眠倒计时<br>（1 档衰减 = 模拟 2 小时）</p>
+        <div class="speed-group" id="speed-group">
+          <button class="speed-btn active" data-speed="1">1×</button>
+          <button class="speed-btn" data-speed="10">10×</button>
+          <button class="speed-btn" data-speed="60">60×</button>
+        </div>
+        <p class="panel-hint">真实节奏：每 2 小时掉 1 档；<br>demo 加速为每 30 秒掉 1 档。</p>
+      </section>
+
+      <section class="panel-card">
+        <h2 class="panel-title">调试面板</h2>
+        <div class="debug" id="debug-panel"></div>
+      </section>
+
+      <section class="panel-card">
+        <h2 class="panel-title">操作</h2>
+        <button class="action-btn" id="btn-reset">🗑 重置存档</button>
+        <button class="action-btn" id="btn-wake-test">🌙 立即休眠（测试）</button>
+        <p class="panel-hint">数值存 localStorage（模拟 NVS 掉电不丢）</p>
+      </section>
+
+    </aside>
+
+  </div>
+
+  <footer class="page-footer">
+    素材依赖：本页通过相对路径引用 <code>../assets/source-webm/</code> 下的西米 webm，双击 index.html 即可打开（需联网加载样式 CDN）。
+  </footer>
+</div>
+
+<script src="js/mapping.js"></script>
+<script src="js/stats.js"></script>
+<script src="js/animator.js"></script>
+<script src="js/overlay.js"></script>
+<script src="js/menus.js"></script>
+<script src="js/sleep.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
