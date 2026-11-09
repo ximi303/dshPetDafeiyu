@@ -43,12 +43,14 @@ const MAPPING = {
   ],
 };
 
-/* 数值规则（与固件 stats 模块口径一致） */
+/* 数值规则（与固件 stats 模块口径一致）
+ * 统一口径：半星 = 1 档 = 10 分。每次按键两边都以「半星」为单位变化，
+ * 且方向一致——不出现一边涨一边跌 */
 const RULES = {
-  feed:  { rice: +5,  mood: +2.5 },                 // 投喂：白饭+1档半? → 半星=5分：白饭+5 心情+2.5
-  slack: { rice: -5,  mood: +10 },                  // 摸鱼：心情+1档 白饭-0.5档
-  work:  { rice: -10, mood: -5, tokens: +10 },      // 打工：白饭-1档 Token+10 心情-0.5档
-  pet:   { rice: 0,   mood: +10 },                  // 贴贴：心情+1档 无消耗
-  decay: { rice: -10, mood: -10, everySec: 30 },    // 自然衰减：demo 每 30s = 模拟 2h 掉 1 档
+  feed:  { rice: +10, mood: +10 },                  // 投喂：两边同涨半星
+  slack: { rice: 0,   mood: +10 },                  // 摸鱼：心情+半星，白饭不动
+  work:  { rice: -10, mood: -10, tokens: +10 },     // 打工：两边同跌半星，Token+10
+  pet:   { rice: 0,   mood: +10 },                  // 贴贴：心情+半星，白饭不动
+  decay: { rice: -10, mood: -10, everySec: 30 },    // 自然衰减：demo 每 30s = 模拟 2h 各掉半星
   sleepAfterMs: 5 * 60 * 1000,                      // 5 分钟无操作休眠
 };
