@@ -27,14 +27,14 @@ core1 读帧 → JPEGDEC 解码 → PSRAM 双缓冲 → core0 DMA pushImage @40M
 
 ## 一、直接烧来玩（不用装编译环境）
 
-`releases/v1.0.0/` 里已有现成烧写文件：
+`releases/v1.0.1/` 里已有现成烧写文件：
 
 | 文件 | 烧写地址 | 说明 |
 |:---|:---|:---|
-| `dshpet-v1.0.0-merged.bin` | **0x0** | 固件，bootloader + 分区表 + app 已合并，一键烧 |
-| `dshpet-v1.0.0-littlefs.bin` | **0x410000** | Flash 动画包（预置 8 段），SD 卡方案的备用 |
+| `dshpet-v1.0.1-merged.bin` | **0x0** | 固件，bootloader + 分区表 + app 已合并，一键烧 |
+| `dshpet-v1.0.1-littlefs.bin` | **0x410000** | Flash 动画包（预置 8 段），SD 卡方案的备用 |
 
-步骤见 **[releases/v1.0.0/烧写说明.md](releases/v1.0.0/烧写说明.md)**，全部历史版本见 **[releases/README.md](releases/README.md)**。
+步骤见 **[releases/v1.0.1/烧写说明.md](releases/v1.0.1/烧写说明.md)**，全部历史版本见 **[releases/README.md](releases/README.md)**。
 
 ---
 
@@ -117,7 +117,7 @@ python tools/build_interactions.py claude --foods rice  # 互动素材 + 合成�
 | 阶段 2 | SD 卡后端：106 段全部识别、连续播放丢帧 **0.8%** | ✅ 已验证（2026-11） |
 | 阶段 2b | 点击 / 拖拽 / 事件触发分池抽签 | 🔧 事件已接入，抽签逻辑未做 |
 | 阶段 3 | 打磨：开关机动画、掉帧自适应、调光、WiFi 推包 | ⬜ |
-| 版本管理 | `releases/` + `tools/release.py`，已发布 v1.0.0 | ✅ |
+| 版本管理 | `releases/` + `tools/release.py`，已发布 v1.0.0（基线）、v1.0.1（修复洗牌 32 段上限） | ✅ |
 | 多角色素材 | 11 角色 × 27 段 = 297 段，预览页与总览页 | 🔧 素材完成，未转 petpack |
 
 ---

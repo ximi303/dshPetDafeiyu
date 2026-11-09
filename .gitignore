@@ -71,6 +71,9 @@ build/
 # ---- 日志与缓存 ----
 *.log
 __pycache__/
+
+# ---- 宣传视频工作区（本地素材与策划，不入库）----
+promo-video/
 *.pyc
 .DS_Store
 Thumbs.db
