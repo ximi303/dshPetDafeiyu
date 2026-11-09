@@ -265,9 +265,37 @@ body {
 .page-footer { margin-top: 34px; text-align: center; font-size: 12.5px; color: var(--muted); }
 .page-footer code { color: var(--text-dim); background: rgba(255,255,255,.06); padding: 2px 6px; border-radius: 4px; }
 
-/* 素材缺失提示条 */
-.asset-missing {
-  position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
-  padding: 8px 16px; border-radius: 10px; white-space: nowrap;
-  background: rgba(239,83,80,.9); font-size: 14px; z-index: 40;
+/* ══════════ 素材加载中 / 降级占位 ══════════ */
+.asset-loading {
+  position: absolute; inset: 56px 0 0 0; z-index: 12;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; pointer-events: none;
 }
+.loading-fish { font-size: 44px; animation: fish-bob 1.2s ease-in-out infinite; }
+.loading-text { font-size: 15px; color: rgba(255,255,255,.45); letter-spacing: 1px; }
+@keyframes fish-bob {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50%      { transform: translateY(-10px) rotate(4deg); }
+}
+
+.asset-fallback {
+  position: absolute; inset: 56px 0 0 0; z-index: 12;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; padding: 0 40px; text-align: center;
+  background: radial-gradient(circle at 50% 40%, rgba(77,208,225,.08), transparent 70%);
+}
+.fallback-fish {
+  font-size: 56px; animation: fish-bob 2.6s ease-in-out infinite;
+  filter: drop-shadow(0 6px 14px rgba(77,208,225,.35));
+}
+.fallback-title { font-size: 20px; font-weight: 700; color: var(--gold); }
+.fallback-msg { font-size: 14px; color: var(--text-dim); }
+.fallback-hint {
+  font-size: 12px; line-height: 1.9; color: var(--muted);
+  background: rgba(255,255,255,.04); border-radius: 10px; padding: 10px 16px;
+}
+.fallback-hint code {
+  color: var(--cyan); background: rgba(77,208,225,.1);
+  padding: 1px 5px; border-radius: 4px; font-size: 11.5px;
+}
+.fallback-tip { font-size: 12.5px; color: rgba(102,187,106,.85); }

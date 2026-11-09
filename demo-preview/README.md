@@ -5,22 +5,44 @@
 
 ## 怎么打开
 
-**方式一（推荐）**：双击 `index.html`，用 Chrome / Edge 打开即可（`file://` 下 video 相对路径可正常加载本地 webm）。
+**方式一（最省事）**：双击 `demo-preview/index.html`，用 Chrome / Edge 打开（`file://` 下能直接读本地 webm）。
 
-**方式二（若浏览器限制本地文件）**：
+**方式二（本地服务器，推荐给所有浏览器/IDE 内置预览）**：
 
 ```powershell
-cd demo-preview
-python -m http.server 8080
-# 浏览器打开 http://localhost:8080
+# 在项目根目录执行（不要在 demo-preview 里执行）
+cd E:\AI\Porject\ESP\ESP32\dshPetDafeiyu
+.\tools\start-demo.ps1
+# 自动打开 http://localhost:8123/demo-preview/
 ```
+
+> ⚠ **常见错误**：`cd demo-preview` 后再 `python -m http.server`——
+> 这样站点根变成 demo-preview，页面里的 `../assets/...` 会越出站点根变成 404，
+> 屏幕会进入「动画素材未加载」占位页。服务必须从**项目根**启动。
 
 > 样式通过 CDN 引入 Tailwind，首次打开需联网；断网时 Tailwind 类失效，但自定义样式（全部核心视觉）仍然生效。
 
-## 素材依赖（重要）
+## 素材依赖与自动兜底
 
-动画通过相对路径 `../assets/source-webm/<分类>/<段名>.webm` 引用**西米 106 段真素材**。
-webm 文件被全局 gitignore，**clone 到新机器后需先在本地准备好素材**，否则屏幕显示红色提示条（页面其余功能照常可玩）。
+动画引用**西米 106 段真素材**（`../assets/source-webm/<分类>/<段名>.webm`）。webm 被全局 gitignore，clone 到新机器后需先在本地准备好素材。
+
+页面启动时会**按顺序探测 5 个候选素材根**，第一个能加载的胜出（调试面板「素材根」一行可看到实际命中项）：
+
+```
+../assets/source-webm/       ← 标准（项目根/demo-preview/index.html）
+/assets/source-webm/         ← http 服务根正好在项目根
+assets/source-webm/          ← 页面位于站点根一级目录
+../../assets/source-webm/    ← demo 放进更深一层
+./assets/source-webm/        ← 把 assets 拷进 demo-preview
+```
+
+兜底行为分三层，避免「一次失败就整屏黑」：
+
+| 情况 | 表现 |
+|:---|:---|
+| 单段加载失败 | 只在控制台告警，自动跳过该段、换同池其它段继续播 |
+| 某池全坏 | 回落其它池（如待机皮肤逐个退让），不黑屏 |
+| 所有候选根都失败 | 显示占位鱼 + 「动画素材未加载」+ 已尝试路径 + 修复指引，**按键与数值逻辑仍可正常体验** |
 
 素材路径映射集中在 `js/mapping.js`，每个池的 `packs` 数组就是路径清单。
 
@@ -98,4 +120,4 @@ webm 文件被全局 gitignore，**clone 到新机器后需先在本地准备好
 - 素材 640×360 与屏幕 4:3 比例不同，`object-fit: cover` 居中裁切（与流水线裁切逻辑视觉一致）
 - 屏幕亮度用 CSS `filter: brightness()` 模拟背光，固件侧需用 LEDC PWM（计划中已标注风险）
 - 提示音效无硬件，设置项置灰占位
-- 素材缺失时只有红色提示条，不阻塞其它交互
+- 素材完全不可用时进入占位模式（占位鱼 + 修复指引），按键与数值逻辑仍可正常体验

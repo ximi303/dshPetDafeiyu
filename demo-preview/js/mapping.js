@@ -6,7 +6,8 @@
  * 换角色 / 换动画：只改本文件，固件侧对应 config.h 的映射数组。
  * ════════════════════════════════════════════════════════════ */
 
-const WEBM_BASE = '../assets/source-webm/';
+/* 素材根路径由 animator.js 的 WEBM_ROOTS 自动探测（file:// / http / 目录迁移都能命中），
+ * 这里的 packs 一律写「分类/段名.webm」相对路径，不含根。 */
 
 const MAPPING = {
 

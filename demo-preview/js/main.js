@@ -189,8 +189,8 @@
 
     if (r === 0 && m === 0) {
       animator.setIdleSpeed(0.25);                 // 0 值：最慢发呆
-      /* 只在待机中才切发呆池：正在播互动/彩蛋时不能打断 */
-      if (animator.state().pool === 'idle') animator.requestPool('empty');
+      /* 只在待机中才切发呆池：正在播互动/彩蛋时不能打断；发呆段坏了就不要切 */
+      if (animator.state().pool === 'idle' && animator.canPlay('empty')) animator.requestPool('empty');
       return;
     }
     if (r <= 4 || m <= 4) {
@@ -252,8 +252,10 @@
                     : (r === 10 && m === 10) ? '满星庆祝待命' : '正常(1x)';
     $('debug-panel').innerHTML =
       `动画池    <b>${poolNames[a.pool] || a.pool}</b>\n` +
-      `当前段    ${a.pack}\n` +
+      `当前段    ${a.pack || '——'}\n` +
       `播放速率  <b>${a.rate}x</b>\n` +
+      `素材根    ${a.root ? a.root : '<span class="warn">未就绪</span>'}` +
+        (a.bad ? ` <span class="warn">（坏段 ${a.bad}）</span>` : '') + '\n' +
       `白饭/心情 <b>${stats.starsRice()}/10 · ${stats.starsMood()}/10</b> 档\n` +
       `联动状态  ${moodState}\n` +
       `Token     <b>${stats.tokens()}</b> · 称号 ${stats.title() || '无'}\n` +
