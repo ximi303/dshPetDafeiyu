@@ -7,14 +7,18 @@
 
 const overlay = (() => {
 
-  const STAR_SVG =
-    '<svg viewBox="0 0 24 24">' +
-    '<path class="star-fill" d="M12 2.6l2.9 5.9 6.5 1-4.7 4.6 1.1 6.5L12 17.5l-5.8 3.1 1.1-6.5L2.6 9.5l6.5-1z"/>' +
-    '<clipPath id="halfclip"><rect x="0" y="0" width="12" height="24"/></clipPath>' +
-    '<path class="star-half" clip-path="url(#halfclip)" ' +
-      'd="M12 2.6l2.9 5.9 6.5 1-4.7 4.6 1.1 6.5L12 17.5l-5.8 3.1 1.1-6.5L2.6 9.5l6.5-1z"/></svg>';
+  const STAR_D = 'M12 2.6l2.9 5.9 6.5 1-4.7 4.6 1.1 6.5L12 17.5l-5.8 3.1 1.1-6.5L2.6 9.5l6.5-1z';
 
-  /* 注意：clipPath id 在多实例下重复引用同一 id 也能工作（同一文档内定义即可） */
+  /* 每颗星的 clipPath 用唯一 id：5 个 SVG 共用同一 id 时，
+   * 浏览器只认文档里第一个，跨 SVG 引用会把裁剪区算错 */
+  let clipSeq = 0;
+  function starSvg() {
+    const id = 'star-half-clip-' + (++clipSeq);
+    return '<svg viewBox="0 0 24 24">' +
+      '<path class="star-fill" d="' + STAR_D + '"/>' +
+      '<clipPath id="' + id + '"><rect x="0" y="0" width="12" height="24"/></clipPath>' +
+      '<path class="star-half" clip-path="url(#' + id + ')" d="' + STAR_D + '"/></svg>';
+  }
 
   let elRice, elMood, elToastLayer;
   let lastRiceStars = -1, lastMoodStars = -1;
@@ -38,7 +42,7 @@ const overlay = (() => {
       if (level >= need) div.classList.add('full');
       else if (level >= need - 1) div.classList.add('half');
       else div.classList.add('empty');
-      div.innerHTML = STAR_SVG;
+      div.innerHTML = starSvg();
       container.appendChild(div);
     }
   }

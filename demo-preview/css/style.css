@@ -113,8 +113,11 @@ body {
   fill: none; stroke: rgba(255,255,255,.38);
   stroke-width: 1.8; stroke-linejoin: round;
 }
+/* 满星：整颗实心，无描边、无半星图层 */
 .star.full .star-fill { fill: currentColor; stroke: none; }
-.star.half .star-half { fill: currentColor; stroke: none; }
+/* 半星图层默认不画：只有 half 状态才显示（否则每颗星都会叠一层左半实心） */
+.star .star-half { display: none; }
+.star.half .star-half { display: block; fill: currentColor; stroke: none; }
 
 #stars-rice .star { color: var(--gold); }
 #stars-mood .star { color: var(--cyan); }
