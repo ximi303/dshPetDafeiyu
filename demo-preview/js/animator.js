@@ -26,6 +26,22 @@ const animator = (() => {
   ];
 
   const PROBE_TIMEOUT_MS = 2500;   // 单根探测超时（有些浏览器失败不触发 error）
+  const CUSTOM_ROOT_KEY = 'feiyu-demo-asset-root';   // 用户手动指定的素材根（降级页可填）
+
+  /* 用户手动指定过素材根就优先用它（支持 ?assets=xxx 一次性注入） */
+  function customRoot() {
+    const q = new URLSearchParams(location.search).get('assets');
+    if (q) {
+      try { localStorage.setItem(CUSTOM_ROOT_KEY, q); } catch (e) {}
+      return q;
+    }
+    try { return localStorage.getItem(CUSTOM_ROOT_KEY) || ''; } catch (e) { return ''; }
+  }
+
+  function roots() {
+    const c = customRoot();
+    return c ? [c].concat(WEBM_ROOTS) : WEBM_ROOTS.slice();
+  }
 
   let video = null;
   let root = null;             // 探测成功的素材根，null = 未确定
@@ -66,14 +82,16 @@ const animator = (() => {
 
     let timer = null;
 
+    const list = roots();
+
     const tryNext = () => {
       clearTimeout(timer);
-      if (i >= WEBM_ROOTS.length) {
+      if (i >= list.length) {
         probing = false;
         degrade('所有候选路径都加载不到 webm 素材');
         return;
       }
-      const cand = WEBM_ROOTS[i++];
+      const cand = list[i++];
       timer = setTimeout(() => { pv.onerror = pv.onloadedmetadata = null; tryNext(); }, PROBE_TIMEOUT_MS);
 
       pv.onloadedmetadata = () => {
@@ -253,7 +271,7 @@ const animator = (() => {
     el && el.remove();
   }
 
-  /* 所有候选路径都失败：显示占位鱼 + 修复指引，交互/数值仍可继续体验 */
+  /* 所有候选路径都失败：显示占位鱼 + 修复指引 + 手动指定素材路径，交互/数值仍可继续体验 */
   function degrade(reason) {
     if (degraded) return;
     degraded = true;
@@ -269,17 +287,56 @@ const animator = (() => {
       '<div class="fallback-title">动画素材未加载</div>' +
       '<div class="fallback-msg">' + reason + '</div>' +
       '<div class="fallback-hint">' +
-        '已尝试：' + WEBM_ROOTS.map(r => '<code>' + r + '</code>').join(' · ') + '<br>' +
+        '已尝试：' + roots().slice(0, 3).map(r => '<code>' + r + '</code>').join(' · ') +
+          (roots().length > 3 ? ' 等 ' + roots().length + ' 个' : '') + '<br>' +
         '① 确认 <code>assets/source-webm/</code> 存在（106 段 webm）<br>' +
         '② 本地服务器必须从 <b>项目根</b> 启动：<code>tools/start-demo.ps1</code><br>' +
         '&nbsp;&nbsp;&nbsp;（<b>不要</b> cd 进 demo-preview 再 http.server，会找不到 ../assets）' +
       '</div>' +
+      '<div class="fallback-path">' +
+        '<input id="asset-path-input" class="asset-path-input" spellcheck="false" ' +
+          'placeholder="或在这里填素材目录，如 E:\\...\\assets\\source-webm">' +
+        '<button id="asset-path-apply" class="asset-path-btn">用这个路径</button>' +
+      '</div>' +
+      '<div class="fallback-reset"><a href="#" id="asset-path-reset">清除自定义路径，恢复自动探测</a></div>' +
       '<div class="fallback-tip">按键与数值逻辑仍可正常体验（无动画）</div>';
     screen.appendChild(box);
 
-    /* 占位模式：给一个纯 CSS 的呼吸动画，让屏幕不完全静止 */
+    const input = box.querySelector('#asset-path-input');
+    input.value = guessRoot();          // 先按当前页面位置猜一个，用户可直接点按钮
+    box.querySelector('#asset-path-apply').addEventListener('click', () => {
+      const fixed = normalizeRoot(input.value);
+      if (!fixed) { input.classList.add('is-bad'); input.focus(); return; }
+      try { localStorage.setItem(CUSTOM_ROOT_KEY, fixed); } catch (e) {}
+      location.reload();
+    });
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') box.querySelector('#asset-path-apply').click();
+    });
+    box.querySelector('#asset-path-reset').addEventListener('click', e => {
+      e.preventDefault();
+      try { localStorage.removeItem(CUSTOM_ROOT_KEY); } catch (err) {}
+      location.reload();
+    });
+
     video.style.opacity = '0';
     console.warn('[animator] 降级为占位模式：' + reason);
+  }
+
+  /* 按当前页面位置猜素材根（file:///…/demo-preview/index.html → file:///…/assets/source-webm/） */
+  function guessRoot() {
+    try { return new URL('../assets/source-webm/', location.href).href; } catch (e) { return ''; }
+  }
+
+  /* 用户输入 → 可用根：Windows 路径转 file:///，补末尾斜杠 */
+  function normalizeRoot(v) {
+    let s = (v || '').trim().replace(/\\/g, '/');
+    if (!s) return '';
+    if (/^[a-zA-Z]:\//.test(s)) s = 'file:///' + s;          // E:/xxx → file:///E:/xxx
+    if (/^(https?:|file:)\/\//i.test(s) || /^\.{0,2}\//.test(s)) {
+      return s.endsWith('/') ? s : s + '/';
+    }
+    return '';
   }
 
   /* ──────────── 其它 ──────────── */

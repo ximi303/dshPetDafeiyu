@@ -279,23 +279,49 @@ body {
 }
 
 .asset-fallback {
-  position: absolute; inset: 56px 0 0 0; z-index: 12;
+  position: absolute; inset: 40px 0 0 0; z-index: 12;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 8px; padding: 0 40px; text-align: center;
-  background: radial-gradient(circle at 50% 40%, rgba(77,208,225,.08), transparent 70%);
+  gap: 6px; padding: 8px 26px; text-align: center;
+  overflow-y: auto;
+  background: radial-gradient(circle at 50% 38%, rgba(77,208,225,.08), transparent 70%);
 }
 .fallback-fish {
-  font-size: 56px; animation: fish-bob 2.6s ease-in-out infinite;
+  font-size: 42px; line-height: 1.1; animation: fish-bob 2.6s ease-in-out infinite;
   filter: drop-shadow(0 6px 14px rgba(77,208,225,.35));
 }
-.fallback-title { font-size: 20px; font-weight: 700; color: var(--gold); }
-.fallback-msg { font-size: 14px; color: var(--text-dim); }
+.fallback-title { font-size: 18px; font-weight: 700; color: var(--gold); }
+.fallback-msg { font-size: 12.5px; color: var(--text-dim); }
 .fallback-hint {
-  font-size: 12px; line-height: 1.9; color: var(--muted);
-  background: rgba(255,255,255,.04); border-radius: 10px; padding: 10px 16px;
+  font-size: 11px; line-height: 1.75; color: var(--muted);
+  background: rgba(255,255,255,.04); border-radius: 10px; padding: 8px 12px;
 }
 .fallback-hint code {
   color: var(--cyan); background: rgba(77,208,225,.1);
   padding: 1px 5px; border-radius: 4px; font-size: 11.5px;
 }
-.fallback-tip { font-size: 12.5px; color: rgba(102,187,106,.85); }
+.fallback-tip { font-size: 11.5px; color: rgba(102,187,106,.85); }
+
+/* 降级页：手动指定素材路径 */
+.fallback-path { display: flex; gap: 8px; width: 100%; max-width: 520px; margin-top: 2px; }
+.asset-path-input {
+  flex: 1; min-width: 0; height: 32px; padding: 0 10px;
+  border: 1px solid rgba(77,208,225,.25); border-radius: 8px;
+  background: rgba(0,0,0,.35); color: #dfe6f5;
+  font-size: 12px; font-family: ui-monospace, Consolas, monospace;
+  outline: none; transition: border-color .2s;
+}
+.asset-path-input:focus { border-color: rgba(77,208,225,.7); }
+.asset-path-input.is-bad { border-color: #ef5350; animation: shake .3s; }
+@keyframes shake {
+  0%,100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); }
+}
+.asset-path-btn {
+  height: 32px; padding: 0 13px; white-space: nowrap; cursor: pointer;
+  border: none; border-radius: 8px; font-size: 12.5px; font-weight: 600;
+  background: linear-gradient(180deg, #4dd0e1, #26a3b5); color: #04252b;
+  transition: filter .15s;
+}
+.asset-path-btn:hover { filter: brightness(1.12); }
+.fallback-reset { font-size: 11.5px; }
+.fallback-reset a { color: rgba(255,255,255,.4); text-decoration: none; }
+.fallback-reset a:hover { color: var(--cyan); text-decoration: underline; }

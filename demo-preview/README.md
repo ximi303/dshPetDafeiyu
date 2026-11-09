@@ -5,7 +5,9 @@
 
 ## 怎么打开
 
-**方式一（最省事）**：双击 `demo-preview/index.html`，用 Chrome / Edge 打开（`file://` 下能直接读本地 webm）。
+**方式零（Windows 最省事）**：双击项目根的 **`启动网页Demo.bat`** —— 自动从项目根起本地服务并打开页面，关窗口即停。
+
+**方式一**：双击 `demo-preview/index.html`，用 Chrome / Edge 打开（`file://` 下能直接读本地 webm）。
 
 **方式二（本地服务器，推荐给所有浏览器/IDE 内置预览）**：
 
@@ -43,6 +45,11 @@ assets/source-webm/          ← 页面位于站点根一级目录
 | 单段加载失败 | 只在控制台告警，自动跳过该段、换同池其它段继续播 |
 | 某池全坏 | 回落其它池（如待机皮肤逐个退让），不黑屏 |
 | 所有候选根都失败 | 显示占位鱼 + 「动画素材未加载」+ 已尝试路径 + 修复指引，**按键与数值逻辑仍可正常体验** |
+
+> 降级页还带一个输入框：可直接填素材目录的绝对路径（如 `E:\...\assets\source-webm`），
+> 存进 localStorage 后立刻重试——适合「demo 被挪到项目外」或「浏览器限制相对路径」的情况。
+> 想恢复自动探测，点「清除自定义路径」，或执行 `localStorage.removeItem('feiyu-demo-asset-root')`。
+> 也支持用 URL 一次性指定：`index.html?assets=file:///E:/.../assets/source-webm/`。
 
 素材路径映射集中在 `js/mapping.js`，每个池的 `packs` 数组就是路径清单。
 
